@@ -6,10 +6,100 @@
 	<title>Document</title>
 </head>
 <body>
-    <a href='https://irp-dev.hkexpress.com/'>home</a>
+    <!-- <a href='https://irp-dev.hkexpress.com/'>home</a>
     <br/>
     <a href='https://irp-dev-booking.hkexpress.com/manage-my-booking/my-trips'>myTrip</a>
     <br/>
-    <a href='https://irp-dev-booking.hkexpress.com'>IBE</a>
+    <a href='https://irp-dev-booking.hkexpress.com'>IBE</a> -->
 </body>
+<script>
+  function getUrlParamsRegex(url) {
+        var params = {};
+        var regex = /[?&]([^=#]+)=([^&#]*)/g;
+        var match;
+        
+        while (match = regex.exec(url)) {
+            params[decodeURIComponent(match[1])] = decodeURIComponent(match[2]);
+        }
+        
+        return params;
+    }
+  const startTime = Date.now();
+  var params =getUrlParamsRegex(window.location.search);
+  var target = params["target"] || "home";
+  var OriginStation = params["OriginStation"];
+  var DestinationStation = params["DestinationStation"];
+  // utm
+  var medium = params["utm_medium"] || "none";
+  var source = params["utm_source"] || "none";
+  var campaign = params["utm_campaign"] || "none";
+  var content = params["utm_content"] || "none";
+  var term = params["utm_term"] || "none";
+  var utmValue = `${medium}::${source}::${campaign}::${content}::${term}`;
+
+  var schemaUrl = "hkexpresstest://";
+
+  var fallbackUrl='';
+  var envConfig = {
+    publicWebSiteHost: "https://irp-dev.hkexpress.com/",
+    bookingHost: "https://irp-dev-booking.hkexpress.com/"
+  };
+  switch (target) {
+    case "home":
+      fallbackUrl = `${envConfig.publicWebSiteHost}`;
+      schemaUrl += "home";
+      break;
+    case "bookFlight": {
+      fallbackUrl = `${envConfig.bookingHost}`;
+      var paramString = params.toString();
+      if (paramString) {
+        fallbackUrl += `?${paramString}`;
+      }
+      schemaUrl += `bookFlight?flightType=RT&origin=${OriginStation}&destination=${DestinationStation}`;
+      break;
+    }
+    case "myTrip":
+      fallbackUrl = `${envConfig.bookingHost}/manage-my-booking/my-trips`;
+      schemaUrl += "myTrip";
+      break;
+    default:
+      fallbackUrl = `${envConfig.publicWebSiteHost}`;
+      break;
+  }
+  if (params["utm_medium"] || params["utm_campaign"]) {
+    schemaUrl += `&utmValue=${utmValue}`;
+  }
+
+  // Check if device is iOS
+  var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+  if (isIOS) {
+    var link = document.createElement("a");
+    link.href = fallbackUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    // Also wait for 5 seconds on Android
+    setTimeout(() => {
+      var currentTime = Date.now();
+      if (currentTime - startTime >= 2000) {
+        window.location.href = fallbackUrl;
+      }
+    }, 5000);
+  }else{
+    // Android uses an anchor element to open the app
+    var link = document.createElement("a");
+    link.href = schemaUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    // Also wait for 5 seconds on Android
+    setTimeout(() => {
+      var currentTime = Date.now();
+      if (currentTime - startTime >= 2000) {
+        window.location.href = fallbackUrl;
+      }
+    }, 5000);
+  }
+</script>
 </html>
