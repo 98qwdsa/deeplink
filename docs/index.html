@@ -45,6 +45,10 @@
     bookingHost: "https://irp-dev-booking.hkexpress.com/"
   };
   switch (target) {
+    case "select":
+      fallbackUrl = `${envConfig.bookingHost}/flight-booking/select`;
+      schemaUrl += "home";
+      break
     case "home":
       fallbackUrl = `${envConfig.publicWebSiteHost}`;
       schemaUrl += "home";
